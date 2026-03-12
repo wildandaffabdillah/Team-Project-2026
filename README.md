@@ -1,7 +1,7 @@
 # Team Project 2026
 
 ## Description
-This project demonstrates collaboration using Git and GitHub.
+
 
 ## Team Members
 1. Wildan Daffa - Repository Owner
