@@ -9,13 +9,9 @@ This project demonstrates collaboration using Git and GitHub.
 3. sasi
 
 ## Tasks
-Wildan - Login System
-Jeremi - Database
-sasi   - UI Design
+1.Wildan - backend
+2.Jeremi - Database
+3.sasi   - frontend
 
 ## Tools
-- HTML
-- CSS
-- JavaScript
-- Git
-- GitHub
+
