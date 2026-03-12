@@ -6,12 +6,12 @@ This project demonstrates collaboration using Git and GitHub.
 ## Team Members
 1. Wildan Daffa - Repository Owner
 2. Jeremi
-3. Member 3
+3. sasi
 
 ## Tasks
 Wildan - Login System
-Jeremi - UI Design
-Member 3 - Database
+Jeremi - Database
+sasi   - UI Design
 
 ## Tools
 - HTML
