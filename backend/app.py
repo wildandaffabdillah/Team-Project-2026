@@ -57,6 +57,7 @@ def video(user, cam_id):
     import time
     def gen():
         last_detect = 0
+        last_predictions = []
         while True:
             if camera is None or not camera.isOpened():
                 frame = get_offline_frame()
@@ -77,17 +78,31 @@ def video(user, cam_id):
             if current_time - last_detect > 2.0:
                 last_detect = current_time
                 result = detect(frame)
-                violations = 0
-                for p in result.get("predictions", []):
+                last_predictions = result.get("predictions", [])
+                
+                # Look for violations
+                for p in last_predictions:
                     if p["class"] not in ["helmet", "vest"]:
-                        violations += 1
-                if violations > 0:
-                    c = get_cursor()
-                    c.execute(
-                        "INSERT INTO violations VALUES (NULL, ?, ?, ?)",
-                        (datetime.now().isoformat(), cam_id, "PPE Missing")
-                    )
-                    conn.commit()
+                        c = get_cursor()
+                        c.execute(
+                            "INSERT INTO violations VALUES (NULL, ?, ?, ?)",
+                            (datetime.now().isoformat(), cam_id, f"Missing PPE: {p['class'].upper()}")
+                        )
+                        conn.commit()
+
+            # Draw AI Boxes on every frame using last known predictions
+            for p in last_predictions:
+                x = int(p["x"] - p["width"] / 2)
+                y = int(p["y"] - p["height"] / 2)
+                w = int(p["width"])
+                h = int(p["height"])
+                
+                color = (0, 255, 0) # Green
+                if p["class"] not in ["helmet", "vest"]:
+                    color = (0, 0, 255) # Red for danger/violation
+                
+                cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+                cv2.putText(frame, f"{p['class'].upper()}", (x, max(15, y - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
             _, buffer = cv2.imencode('.jpg', frame)
             yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
@@ -130,7 +145,8 @@ def set_settings(user):
 @app.route("/report")
 @token_required
 def report(user):
-    file = generate_pdf()
+    period = request.args.get('period', 'all')
+    file = generate_pdf(period=period)
     return send_file(file, as_attachment=True)
 
 

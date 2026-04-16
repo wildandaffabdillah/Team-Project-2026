@@ -32,6 +32,7 @@ function AlertBox({ msg }) {
 export default function Dashboard() {
   const [alerts, setAlerts] = useState([]);
   const [activeTab, setActiveTab] = useState("live");
+  const [reportPeriod, setReportPeriod] = useState("all");
 
   // Settings State
   const [apiKey, setApiKey] = useState("");
@@ -110,7 +111,7 @@ export default function Dashboard() {
   }, []);
 
   const downloadReport = () => {
-    window.open(`http://127.0.0.1:5000/report?token=${token}`);
+    window.open(`http://127.0.0.1:5000/report?token=${token}&period=${reportPeriod}`);
   };
 
   const handleLogout = () => {
@@ -120,27 +121,38 @@ export default function Dashboard() {
 
   // Analytics Chart Logic
   const getChartData = () => {
-    // Basic aggregation: count by camera
-    const camCounts = { cam1: 0, cam2: 0 };
+    const typeCounts = {};
     alerts.forEach(a => {
-      if (a[2] === "cam1") camCounts.cam1++;
-      if (a[2] === "cam2") camCounts.cam2++;
+      let typeStr = a[3].replace("Missing PPE: ", "");
+      if (typeStr === "PPE Missing") typeStr = "UNSPECIFIED/LEGACY";
+      typeCounts[typeStr] = (typeCounts[typeStr] || 0) + 1;
     });
 
+    const labels = Object.keys(typeCounts);
+    const dataVals = Object.values(typeCounts);
+
+    const colors = [
+      'rgba(239, 68, 68, 0.8)', // Red
+      'rgba(245, 158, 11, 0.8)', // Amber
+      'rgba(59, 130, 246, 0.8)', // Blue
+      'rgba(16, 185, 129, 0.8)'  // Emerald
+    ];
+
+    const borders = [
+      'rgba(239, 68, 68, 1)', 
+      'rgba(245, 158, 11, 1)', 
+      'rgba(59, 130, 246, 1)', 
+      'rgba(16, 185, 129, 1)'
+    ];
+
     return {
-      labels: ['Camera 1', 'Camera 2'],
+      labels: labels.length > 0 ? labels : ['No Data'],
       datasets: [
         {
-          label: 'Total Violations Detected',
-          data: [camCounts.cam1, camCounts.cam2],
-          backgroundColor: [
-            'rgba(239, 68, 68, 0.8)',
-            'rgba(59, 130, 246, 0.8)',
-          ],
-          borderColor: [
-            'rgba(239, 68, 68, 1)',
-            'rgba(59, 130, 246, 1)',
-          ],
+          label: 'Total Violations by Category',
+          data: dataVals.length > 0 ? dataVals : [0],
+          backgroundColor: labels.map((_, i) => colors[i % colors.length]),
+          borderColor: labels.map((_, i) => borders[i % borders.length]),
           borderWidth: 1,
         },
       ],
@@ -151,7 +163,7 @@ export default function Dashboard() {
     responsive: true,
     plugins: {
       legend: { position: 'top', labels: { color: '#E2E8F0' } },
-      title: { display: true, text: 'Violations Per Camera', color: '#E2E8F0' },
+      title: { display: true, text: 'Breakdown: PPE Violations by Object Type', color: '#E2E8F0' },
     },
     scales: {
       y: { ticks: { color: '#94A3B8' }, grid: { color: 'rgba(255,255,255,0.1)' } },
@@ -191,7 +203,27 @@ export default function Dashboard() {
             {activeTab === 'analytics' && "Data & Analytics"}
             {activeTab === 'settings' && "System Configuration"}
           </h2>
-          <div className="header-actions">
+          <div className="header-actions" style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+            <select 
+              className="periode-select"
+              value={reportPeriod}
+              onChange={e => setReportPeriod(e.target.value)}
+              style={{
+                background: 'rgba(15, 23, 42, 0.8)',
+                color: 'white',
+                border: '1px solid var(--glass-border)',
+                padding: '0.65rem 1.5rem',
+                borderRadius: '8px',
+                fontFamily: 'var(--font-heading)',
+                fontSize: '0.9rem',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="all">📊 All Time Data</option>
+              <option value="daily">📅 Daily (Hari Ini)</option>
+              <option value="monthly">📆 Monthly (Bulan Ini)</option>
+              <option value="yearly">📈 Yearly (Tahun Ini)</option>
+            </select>
             <button className="btn btn-primary" onClick={downloadReport}>
               📄 Export PDF Report
             </button>
