@@ -7,6 +7,7 @@ from auth import generate_token, token_required
 from cameras import get_camera, get_offline_frame
 from database import conn, get_cursor
 from report import generate_pdf
+import concurrent.futures
 
 app = Flask(__name__)
 CORS(app)
@@ -15,6 +16,25 @@ config = {
     "api_key": "a0ZmLbsda0FYqW9X6dwD",
     "model_id": "ppe-wzdov-n1fly/1"
 }
+
+executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+global_predictions = {"cam1": [], "cam2": []}
+
+def run_ai_background(frame, cam_id):
+    result = detect(frame)
+    preds = result.get("predictions", [])
+    global_predictions[cam_id] = preds
+    c = get_cursor()
+    violations_found = False
+    for p in preds:
+        if p["class"] not in ["helmet", "vest"]:
+            c.execute(
+                "INSERT INTO violations VALUES (NULL, ?, ?, ?)",
+                (datetime.now().isoformat(), cam_id, f"Missing PPE: {p['class'].upper()}")
+            )
+            violations_found = True
+    if violations_found:
+        conn.commit()
 
 users = [
     {"username": "admin", "password": "123", "role": "admin"},
@@ -57,7 +77,6 @@ def video(user, cam_id):
     import time
     def gen():
         last_detect = 0
-        last_predictions = []
         while True:
             if camera is None or not camera.isOpened():
                 frame = get_offline_frame()
@@ -67,31 +86,20 @@ def video(user, cam_id):
                 continue
 
             success, frame = camera.read()
-            if not success:
+            if not success or frame is None:
                 frame = get_offline_frame("FEED ERROR")
                 _, buffer = cv2.imencode('.jpg', frame)
                 yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
-                time.sleep(1)
+                time.sleep(0.5)
                 continue
                 
             current_time = time.time()
             if current_time - last_detect > 2.0:
                 last_detect = current_time
-                result = detect(frame)
-                last_predictions = result.get("predictions", [])
-                
-                # Look for violations
-                for p in last_predictions:
-                    if p["class"] not in ["helmet", "vest"]:
-                        c = get_cursor()
-                        c.execute(
-                            "INSERT INTO violations VALUES (NULL, ?, ?, ?)",
-                            (datetime.now().isoformat(), cam_id, f"Missing PPE: {p['class'].upper()}")
-                        )
-                        conn.commit()
+                executor.submit(run_ai_background, frame.copy(), cam_id)
 
             # Draw AI Boxes on every frame using last known predictions
-            for p in last_predictions:
+            for p in global_predictions.get(cam_id, []):
                 x = int(p["x"] - p["width"] / 2)
                 y = int(p["y"] - p["height"] / 2)
                 w = int(p["width"])
@@ -106,7 +114,7 @@ def video(user, cam_id):
 
             _, buffer = cv2.imencode('.jpg', frame)
             yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
-            time.sleep(0.05)
+            # Tidak ada time.sleep() disini agar streaming stabil 30fps!
 
     return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
