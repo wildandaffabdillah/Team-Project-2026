@@ -13,9 +13,7 @@ class ThreadedCamera:
         self.url = url
         try:
             url_int = int(url)
-            # Solusi khusus Windows: Paksa pakai DirectShow (CAP_DSHOW) 
-            # untuk menghindari bug MSMF (Microsoft Media Foundation)
-            self.video = cv2.VideoCapture(url_int, cv2.CAP_DSHOW)
+            self.video = cv2.VideoCapture(url_int)
         except ValueError:
             self.video = cv2.VideoCapture(url)
 
