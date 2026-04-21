@@ -1,66 +1,24 @@
 import cv2
 import numpy as np
-import threading
-import time
 
 camera_urls = {
     "cam1": 0,
     "cam2": 1
 }
-
-class ThreadedCamera:
-    def __init__(self, url):
-        self.url = url
-        try:
-            url_int = int(url)
-            self.video = cv2.VideoCapture(url_int)
-        except ValueError:
-            self.video = cv2.VideoCapture(url)
-
-        self.grabbed = False
-        self.frame = None
-        self.stopped = False
-        
-        # Mulai thread background murni untuk camera read
-        if self.video.isOpened():
-            self.thread = threading.Thread(target=self.update, args=())
-            self.thread.daemon = True
-            self.thread.start()
-
-    def update(self):
-        while not self.stopped:
-            if not self.video.isOpened():
-                time.sleep(0.5)
-                continue
-                
-            self.grabbed, frame = self.video.read()
-            if self.grabbed:
-                self.frame = frame.copy()
-            
-            # Beri sedikit napas agar hardware/USB bus Windows (MSMF) tidak meledak/crash 
-            # karena ditarik datanya ribuan kali per detik
-            time.sleep(0.03)
-
-    def read(self):
-        return self.grabbed, self.frame
-
-    def isOpened(self):
-        return self.video.isOpened()
-
-    def release(self):
-        self.stopped = True
-        if hasattr(self, 'thread'):
-            self.thread.join(timeout=1)
-        self.video.release()
-
 cameras = {}
 
 def update_camera(cam_id, url):
     camera_urls[cam_id] = url
     if cam_id in cameras and cameras[cam_id] is not None:
         cameras[cam_id].release()
-        
-    cameras[cam_id] = ThreadedCamera(url)
+    try:
+        url_int = int(url)
+        cameras[cam_id] = cv2.VideoCapture(url_int)
+    except ValueError:
+        cameras[cam_id] = cv2.VideoCapture(url)
+    
+    if cameras[cam_id].isOpened():
+        cameras[cam_id].set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
 # Initialize
 for c_id, url in camera_urls.items():
