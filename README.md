@@ -113,3 +113,123 @@ A comprehensive AI-powered Personal Protective Equipment (PPE) Compliance Monito
 - **Time/Frequency:** Sesi diskusi mendalam dilakukan setiap satu minggu sekali.
 - **Aktivitas:** *Sprint Review* dan *Sprint Retrospective* bersama seluruh tim.
 - **Goals:** Mendemonstrasikan fitur yang telah berhasil terintegrasi utuh (misal, backend berhasil mengirim data ke frontend). Mengukur persentase pencapaian dari iterasi minggu tersebut, mengkaji tantangan yang ditemui, serta menentukan *Priority Backlogs* mana yang akan dieksekusi untuk Sprint minggu selanjutnya.
+
+## 🚀 Sprint 1 Report
+
+---
+
+### 🎯 Sprint Goal
+
+The goal of Sprint 1 was to:
+
+- Build the foundation of the PPE Monitoring System  
+- Set up the backend (Flask API + AI detection)  
+- Develop a basic frontend dashboard  
+- Connect frontend with backend (API integration)  
+- Implement basic authentication (login + token)  
+
+---
+
+### 📈 Progress Completed
+
+The following have been successfully implemented:
+
+#### 🔹 Backend
+- Flask API with multiple endpoints:
+  - `/login` (authentication)  
+  - `/video/<cam_id>` (camera streaming + AI detection)  
+  - `/alerts` (violation data)  
+  - `/settings` (API key & camera configuration)  
+  - `/report` (PDF export)  
+- AI detection integrated using Roboflow API  
+- PPE detection system (helmet & vest) with violation logging to database  
+- Multi-threading implemented for non-blocking AI processing  
+
+#### 🔹 Frontend
+- Dashboard UI developed:
+  - Worker statistics, violations, safe workers  
+  - Chart visualization  
+  - Alerts list fetched from backend  
+- API integration using fetch (`/alerts`)  
+
+#### 🔹 UI/UX
+- Modern dashboard design (dark mode, card layout, grid system)  
+- Basic page structure initialized (`index.html`)  
+
+---
+
+### 👥 Task Distribution
+
+#### 👨‍💻 Backend Developer (Wildan)
+- Flask API development  
+- AI detection integration  
+- Database & violation logging  
+- Video streaming system  
+
+#### 🎨 Frontend Developer (Sasi)
+- Dashboard UI development  
+- Chart & alert display  
+- Styling and layout  
+
+#### 📊 Product Owner / Database (Jeremi)
+- Database structure design  
+- Managing violation data  
+- Defining core system features  
+
+---
+
+### ⚠️ Challenges & Solutions
+
+#### 🔴 Challenges
+- **Integrating AI with real-time video**  
+  AI processing is heavy and may cause lag  
+
+- **Frontend & backend synchronization**  
+  Backend requires authentication token, but frontend does not fully handle it yet  
+
+- **Static dashboard data**  
+  Values (20, 5, 15) are still hardcoded  
+
+- **Camera error handling**  
+  Camera may go offline or fail to read frames  
+
+---
+
+#### 🟢 Solutions
+- ✔ Implement background threading  
+  → Already applied using `ThreadPoolExecutor`  
+
+- ✔ Use prediction caching  
+  → Avoid running detection on every frame  
+
+- ✔ Add fallback mechanisms:
+  - Offline frame display  
+  - Delay handling for errors  
+
+- ✔ Use API `/alerts` for real-time updates  
+  → Already integrated in frontend  
+
+---
+
+### 📅 Plan for Week 2 (Sprint 2)
+
+#### 🚀 Backend
+- Improve authentication (frontend must use token)  
+- Add new endpoints:
+  - Real-time statistics (total workers, violations, safe workers)  
+- Optimize database queries  
+
+#### 🎨 Frontend
+- Replace static data with dynamic API data  
+- Add login page (since backend already supports it)  
+- Integrate live video streaming into dashboard  
+
+#### 🧠 AI & System
+- Improve detection accuracy  
+- Add more PPE categories (shoes, gloves, etc.)  
+- Enhance logging (timestamp + violation type)  
+
+#### 📊 Additional Features
+- Real-time dashboard updates  
+- Data filtering (daily / weekly)  
+- UI for exporting reports (trigger `/report`)  
