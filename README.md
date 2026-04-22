@@ -102,18 +102,20 @@ A comprehensive AI-powered Personal Protective Equipment (PPE) Compliance Monito
 ## Sprint Methods
 
 ### 📆 Daily Sprint (Team Source Repo)
-- **Time/Frequency:** Dilakukan setiap hari secara *asynchronous*.
-- **Aktivitas:** Setiap _Developer_ mendorong (*push*) potongan kode fitur atau perbaikan *bug* ke Github (*repository*) secara berkala.
-- **Goals:** Menjaga _version control_ tetap segar dan memastikan seluruh progres harian tercatat jelas. Dalam komunikasi harian, tim secara singkat memperbarui tentang:
-    1. Apa yang dikerjakan kemarin?
-    2. Apa yang akan dikerjakan hari ini?
-    3. Apakah ada kendala/blocker yang menghalangi?
+- **Time/Frequency:** Done every day *asynchronously*.
+- **Activities:** Each _Developer_ pushes code for new features or bug fixes to GitHub (repository) regularly.
+- **Goals:** Maintain _version control_ and ensure all daily progress is recorded clearly. In daily communication, the team should update about:
+    1. What was done yesterday?
+    2. What will be done today?
+    3. Are there any obstacles/blockers?
 
-### 📅 Weekly Sprint (Sinkronisasi Mingguan)
-- **Time/Frequency:** Sesi diskusi mendalam dilakukan setiap satu minggu sekali.
-- **Aktivitas:** *Sprint Review* dan *Sprint Retrospective* bersama seluruh tim.
-- **Goals:** Mendemonstrasikan fitur yang telah berhasil terintegrasi utuh (misal, backend berhasil mengirim data ke frontend). Mengukur persentase pencapaian dari iterasi minggu tersebut, mengkaji tantangan yang ditemui, serta menentukan *Priority Backlogs* mana yang akan dieksekusi untuk Sprint minggu selanjutnya.
+  
+### 📅 Weekly Sprint (Weekly Synchronization)
+- **Time/Frequency:** Discussion sessions held every week.
+- **Aktivitas:** *Sprint Review* and *Sprint Retrospective* with the whole team.
+- **Goals:** Demonstrate features that have been integrated (e.g., backend successfully sending data to frontend). Review the results of the previous week’s iterations, address encountered challenges, and determine the *Priority Backlogs* for the next Sprint.
 
+  
 ## 🚀 Sprint 1 Report
 
 ---
