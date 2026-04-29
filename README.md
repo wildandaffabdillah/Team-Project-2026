@@ -1,33 +1,23 @@
 # SafeSight K3
 
-SafeSight K3 adalah web app monitoring K3 untuk mendeteksi worker dan kepatuhan penggunaan PPE dari **kamera laptop/webcam** terlebih dahulu. Arsitekturnya sudah disiapkan supaya nanti bisa di-upgrade ke model custom YOLO dan input CCTV/RTSP.
+SafeSight K3 is an OHS monitoring web app that detects worker compliance and PPE use from a laptop camera/webcam. Its architecture is designed for future upgrades to a custom YOLO model and CCTV/RTSP input.
 
 ## Fitur
 
 - Worker detection
 - PPE detection: helmet, vest, shoes, gloves, goggles
 - PPE compliance checker
-- Real-time alert
-- Database log pelanggaran
-- Dashboard monitoring UI
-- Report CSV generator
-- Siap dikembangkan ke CCTV / RTSP stream
+- Real-time alerts
+- Violation log database
+- UI monitoring dashboard
+- Generator CSV reports
 
-## Catatan Penting
+## Important Note
 
-Project ini **sudah lengkap secara struktur full-stack**, tapi akurasi PPE asli tetap bergantung pada **model custom** yang kamu latih sendiri.
+This project is **structurally complete and full-stack**, but the accuracy of the original PPE still depends on the **custom model** you trained yourself.
 
-Kalau file `models/ppe.pt` belum ada, aplikasi akan tetap jalan dalam **demo mode** agar dashboard, alur logging, alert, dan report tetap bisa dipresentasikan.
+If the `models/ppe.pt` file does not exist, the application will still run in **demo mode** so that the dashboard, logging flow, alerts, and reports can still be presented.
 
-## Cara Menjalankan
-
-### 1. Buat virtual environment
-
-```bash
-python -m venv .venv
-```
-
----
 
 ## 🏗 Agile & Scrum Project Management
 
