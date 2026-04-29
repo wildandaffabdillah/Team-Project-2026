@@ -71,7 +71,7 @@
   <button id="stopCameraBtn" class="btn btn-secondary">Stop</button>
   
   {% if role == 'superadmin' %}
-  <button onclick="alert('🔧 Konfigurasi Kamera dikelola otomatis oleh browser (Webcam First). Untuk versi CCTV, silakan hubungi tim engineer.')" class="btn btn-ghost">⚙️ Camera Settings</button>
+  <button id="openSettingsBtn" class="btn btn-ghost">⚙️ Camera Settings</button>
   <a href="/api/report" class="btn btn-ghost">Download Report</a>
   {% endif %}
   
@@ -90,6 +90,7 @@
             </div>
 
             <div class="video-frame">
+              <img id="ipcamView" crossorigin="anonymous" style="display:none; width:100%; height:420px; object-fit:cover; background:#09111a;" />
               <video id="webcam" autoplay muted playsinline></video>
               <canvas id="captureCanvas" class="hidden"></canvas>
               <div id="videoOverlay" class="video-overlay">
@@ -169,6 +170,42 @@
 
       </main>
     </div>
+
+    {% if role == 'superadmin' %}
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>⚙️ Camera Config (Superadmin)</h3>
+          <button id="closeModalBtn" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Tipe Kamera</label>
+            <div class="radio-group">
+              <label><input type="radio" name="camType" value="webcam" checked> Local Webcam (USB)</label>
+              <label><input type="radio" name="camType" value="ipcam"> IP CCTV URL (HP/MJPEG)</label>
+            </div>
+          </div>
+          
+          <div id="webcamGroup" class="form-group">
+            <label>Pilih Hardware Kamera</label>
+            <select id="webcamSelect" class="form-control">
+              <option value="">Memuat perangkat...</option>
+            </select>
+          </div>
+          
+          <div id="ipcamGroup" class="form-group hidden">
+            <label>Alamat Stream (URL)</label>
+            <input type="text" id="ipcamUrl" class="form-control" placeholder="http://192.168.1.10:8080/video">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="saveSettingsBtn" class="btn btn-primary">Simpan Konfigurasi</button>
+        </div>
+      </div>
+    </div>
+    {% endif %}
 
     <script>
       window.SAFESIGHT_CONFIG = {

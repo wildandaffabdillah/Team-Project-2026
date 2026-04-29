@@ -1,4 +1,6 @@
-from flask import Blueprint, Response, current_app, jsonify, request
+from flask import Blueprint, Response, current_app, jsonify, request, session
+import json
+from pathlib import Path
 
 from services.database import (
     export_report_csv,
@@ -10,6 +12,41 @@ from services.database import (
 from services.detector import PPEDetector
 
 api_bp = Blueprint("api", __name__)
+
+SETTINGS_FILE = Path("instance/settings.json")
+
+def load_settings():
+    if SETTINGS_FILE.exists():
+        try:
+            with open(SETTINGS_FILE, "r") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {"camera_type": "webcam", "camera_id": "", "camera_url": ""}
+
+def save_settings(data):
+    SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(SETTINGS_FILE, "w") as f:
+        json.dump(data, f)
+
+@api_bp.route("/settings", methods=["GET"])
+def get_settings():
+    return jsonify(load_settings())
+
+@api_bp.route("/settings", methods=["POST"])
+def post_settings():
+    if session.get("role") != "superadmin":
+        return jsonify({"error": "Akses Ditolak. Hanya Superadmin yang dapat mengubah pengaturan kamera."}), 403
+    
+    payload = request.get_json(silent=True) or {}
+    current = load_settings()
+    
+    if "camera_type" in payload: current["camera_type"] = payload["camera_type"]
+    if "camera_id" in payload: current["camera_id"] = payload["camera_id"]
+    if "camera_url" in payload: current["camera_url"] = payload["camera_url"]
+    
+    save_settings(current)
+    return jsonify({"status": "success", "settings": current})
 
 
 def get_detector() -> PPEDetector:
@@ -43,7 +80,9 @@ def analyze_frame():
         "mode": result.mode,
     }
 
-    record_id = insert_violation(current_app.config["DATABASE"], log_payload)
+    record_id = None
+    if result.worker_detected:
+        record_id = insert_violation(current_app.config["DATABASE"], log_payload)
 
     return jsonify(
         {

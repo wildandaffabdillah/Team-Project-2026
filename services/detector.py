@@ -38,7 +38,7 @@ class PPEDetector:
 
     def _analyze_with_roboflow(self, frame: np.ndarray) -> DetectionResult:
         _, buffer = cv2.imencode('.jpg', frame)
-        url = f"https://detect.roboflow.com/{self.model_id}?api_key={self.api_key}"
+        url = f"https://detect.roboflow.com/{self.model_id}?api_key={self.api_key}&confidence=15"
         
         try:
             res = requests.post(url, files={"file": ("image.jpg", buffer.tobytes(), "image/jpeg")})
@@ -69,7 +69,7 @@ class PPEDetector:
             }
             boxes.append(box_data)
             
-            if label == "person":
+            if label in ["person", "worker", "none", "no_helmet", "no_vest"]:
                 persons.append(p)
             elif label in ["helmet", "vest", "shoes"]:
                 items.append(p)
@@ -98,7 +98,7 @@ class PPEDetector:
             # P1 label injection directly into boxes list for UI rendering
             person_box_index = None
             for idx, b in enumerate(boxes):
-                if b["label"] == "person" and b["x1"] == int(xmin) and b["y1"] == int(ymin):
+                if b["label"] in ["person", "worker", "none", "no_helmet", "no_vest"] and b["x1"] == int(xmin) and b["y1"] == int(ymin):
                     person_box_index = idx
                     break
                     
@@ -114,7 +114,12 @@ class PPEDetector:
         worker_detected = len(persons) > 0
         
         if not worker_detected:
-            violation_text = "Tidak ada worker terdeteksi"
+            detected_labels = [p["class"] for p in predictions]
+            if detected_labels:
+                violation_text = f"AI mendeteksi: {', '.join(detected_labels)} (Bukan Worker)"
+            else:
+                violation_text = "Tidak ada worker terdeteksi"
+            is_compliant = True
         elif is_compliant:
             violation_text = "PPE lengkap dan sesuai"
         else:
@@ -122,11 +127,15 @@ class PPEDetector:
             
         avg_conf = sum(confidences) / len(confidences) if confidences else 0.0
 
+        global_helmet = any(i["class"].lower() == "helmet" for i in items)
+        global_vest = any(i["class"].lower() == "vest" for i in items)
+        global_shoes = any(i["class"].lower() == "shoes" for i in items)
+
         return DetectionResult(
             worker_detected=worker_detected,
-            helmet=is_compliant, 
-            vest=is_compliant,
-            shoes=True,
+            helmet=global_helmet, 
+            vest=global_vest,
+            shoes=global_shoes,
             compliant=is_compliant,
             confidence=round(avg_conf, 3),
             violation_text=violation_text,

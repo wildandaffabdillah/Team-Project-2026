@@ -1,4 +1,5 @@
 const video = document.getElementById("webcam");
+const ipcamView = document.getElementById("ipcamView");
 const canvas = document.getElementById("captureCanvas");
 const startBtn = document.getElementById("startCameraBtn");
 const stopBtn = document.getElementById("stopCameraBtn");
@@ -20,8 +21,103 @@ const lastActivity = document.getElementById("lastActivity");
 
 let mediaStream = null;
 let captureTimer = null;
+let currentConfig = { camera_type: "webcam", camera_id: "", camera_url: "" };
 
 const CAPTURE_INTERVAL = window.SAFESIGHT_CONFIG?.captureInterval || 1800;
+
+// === SETTINGS MODAL LOGIC ===
+const settingsModal = document.getElementById("settingsModal");
+const openSettingsBtn = document.getElementById("openSettingsBtn");
+const closeModalBtn = document.getElementById("closeModalBtn");
+const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+const webcamSelect = document.getElementById("webcamSelect");
+const ipcamUrl = document.getElementById("ipcamUrl");
+const webcamGroup = document.getElementById("webcamGroup");
+const ipcamGroup = document.getElementById("ipcamGroup");
+
+async function loadSettings() {
+  try {
+    const res = await fetch("/api/settings");
+    currentConfig = await res.json();
+    
+    if (openSettingsBtn) {
+      const radioIpcam = document.querySelector('input[value="ipcam"]');
+      const radioWebcam = document.querySelector('input[value="webcam"]');
+      if (currentConfig.camera_type === "ipcam") {
+        radioIpcam.checked = true;
+        ipcamGroup.classList.remove("hidden");
+        webcamGroup.classList.add("hidden");
+      } else {
+        radioWebcam.checked = true;
+        webcamGroup.classList.remove("hidden");
+        ipcamGroup.classList.add("hidden");
+      }
+      ipcamUrl.value = currentConfig.camera_url || "";
+    }
+  } catch (e) { console.error(e); }
+}
+
+async function populateCameras() {
+  try {
+    await navigator.mediaDevices.getUserMedia({video: true}); // trigger prompt
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(d => d.kind === 'videoinput');
+    
+    webcamSelect.innerHTML = videoDevices.map(d => 
+      `<option value="${d.deviceId}" ${d.deviceId === currentConfig.camera_id ? 'selected' : ''}>${d.label || 'Kamera USB Terdeteksi'}</option>`
+    ).join('');
+  } catch(e) { console.error(e); }
+}
+
+if (settingsModal) {
+  openSettingsBtn.addEventListener("click", () => {
+    settingsModal.classList.remove("hidden");
+    populateCameras();
+  });
+  
+  closeModalBtn.addEventListener("click", () => {
+    settingsModal.classList.add("hidden");
+  });
+  
+  document.querySelectorAll('input[name="camType"]').forEach(r => {
+    r.addEventListener('change', (e) => {
+      if (e.target.value === 'webcam') {
+        webcamGroup.classList.remove("hidden");
+        ipcamGroup.classList.add("hidden");
+      } else {
+        ipcamGroup.classList.remove("hidden");
+        webcamGroup.classList.add("hidden");
+      }
+    });
+  });
+
+  saveSettingsBtn.addEventListener("click", async () => {
+    const payload = {
+      camera_type: document.querySelector('input[name="camType"]:checked').value,
+      camera_id: webcamSelect.value,
+      camera_url: ipcamUrl.value
+    };
+    
+    try {
+      await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      settingsModal.classList.add("hidden");
+      await loadSettings();
+      
+      if (captureTimer) {
+        stopCamera();
+        startCamera();
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Gagal menyimpan pengaturan.");
+    }
+  });
+}
+// === END SETTINGS ===
 
 function setMetric(element, ok) {
   element.textContent = ok ? "Detected" : "Not Detected";
@@ -38,41 +134,42 @@ function setAlert(message, type = "info") {
   alertBox.textContent = message;
 }
 
-function formatBoolean(value) {
-  return value ? '<span class="ok">Yes</span>' : '<span class="no">No</span>';
-}
-
 async function startCamera() {
   try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 1280, height: 720, facingMode: "user" },
-      audio: false,
-    });
-
-    video.srcObject = mediaStream;
-    overlay.textContent = "Camera aktif. Monitoring sedang berjalan...";
-    setTimeout(() => {
+    if (currentConfig.camera_type === "ipcam") {
+      video.style.display = "none";
+      ipcamView.style.display = "block";
+      if (!currentConfig.camera_url) throw new Error("URL CCTV Kosong!");
+      
+      ipcamView.src = currentConfig.camera_url;
+      overlay.textContent = "Menghubungkan ke IP Camera...";
+      setTimeout(() => overlay.style.display = "none", 1500);
+      
+    } else {
+      ipcamView.style.display = "none";
+      video.style.display = "block";
+      
+      const constraints = { video: { width: 1280, height: 720 }, audio: false };
+      if (currentConfig.camera_id) {
+        constraints.video.deviceId = { exact: currentConfig.camera_id };
+      }
+      mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      video.srcObject = mediaStream;
       overlay.style.display = "none";
-    }, 1200);
-
-    if (captureTimer) {
-      clearInterval(captureTimer);
     }
 
+    if (captureTimer) clearInterval(captureTimer);
     captureTimer = setInterval(captureAndAnalyze, CAPTURE_INTERVAL);
-    await refreshSummary();
   } catch (error) {
     overlay.style.display = "grid";
-    overlay.textContent = "Gagal mengakses webcam. Pastikan izin kamera sudah diberikan.";
+    overlay.textContent = "Gagal mengakses kamera. Periksa perangkat/jaringan.";
     console.error(error);
   }
 }
 
 function stopCamera() {
-  if (captureTimer) {
-    clearInterval(captureTimer);
-    captureTimer = null;
-  }
+  if (captureTimer) clearInterval(captureTimer);
+  captureTimer = null;
 
   if (mediaStream) {
     mediaStream.getTracks().forEach((track) => track.stop());
@@ -80,19 +177,22 @@ function stopCamera() {
   }
 
   video.srcObject = null;
+  ipcamView.src = "";
   overlay.style.display = "grid";
   overlay.innerHTML = 'Klik <strong>Start Camera</strong> untuk memulai monitoring.';
 }
 
 async function captureAndAnalyze() {
-  if (!video.videoWidth || !video.videoHeight) {
-    return;
-  }
+  let srcElement = currentConfig.camera_type === "ipcam" ? ipcamView : video;
+  const width = srcElement.videoWidth || srcElement.naturalWidth;
+  const height = srcElement.videoHeight || srcElement.naturalHeight;
+  
+  if (!width || !height) return;
 
   const ctx = canvas.getContext("2d");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  canvas.width = width;
+  canvas.height = height;
+  ctx.drawImage(srcElement, 0, 0, canvas.width, canvas.height);
 
   const frame = canvas.toDataURL("image/jpeg", 0.82);
 
@@ -104,9 +204,7 @@ async function captureAndAnalyze() {
     });
 
     const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || "Gagal menganalisis frame.");
-    }
+    if (!response.ok) throw new Error(data.error || "Gagal menganalisis frame.");
 
     updateDetectionUI(data.result);
     await refreshSummary();
@@ -180,29 +278,20 @@ function initChart() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
-      },
+      plugins: { legend: { display: false } },
       scales: {
-        y: { 
-          beginAtZero: true,
-          grid: { color: 'rgba(255,255,255,0.05)' },
-          ticks: { color: '#9cb0d1', stepSize: 1 }
-        },
-        x: {
-          grid: { display: false },
-          ticks: { color: '#9cb0d1', font: { weight: 'bold' } }
-        }
+        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9cb0d1', stepSize: 1 } },
+        x: { grid: { display: false }, ticks: { color: '#9cb0d1', font: { weight: 'bold' } } }
       }
     }
   });
 }
 
-initChart();
-
-
-
 startBtn.addEventListener("click", startCamera);
 stopBtn.addEventListener("click", stopCamera);
 window.addEventListener("beforeunload", stopCamera);
-refreshSummary();
+
+loadSettings().then(() => {
+  initChart();
+  refreshSummary();
+});
