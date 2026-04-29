@@ -5,7 +5,7 @@ SafeSight K3 adalah web app monitoring K3 untuk mendeteksi worker dan kepatuhan 
 ## Fitur
 
 - Worker detection
-- PPE detection: helmet, vest, shoes
+- PPE detection: helmet, vest, shoes, gloves, goggles
 - PPE compliance checker
 - Real-time alert
 - Database log pelanggaran
@@ -45,7 +45,7 @@ This project follows the Agile/Scrum framework to ensure iterative development, 
 
 | ID | Priority | Type | Backlog Title | User Story & Goal |
 | :--- | :---: | :--- | :--- | :--- |
-| **BL-01** | 🔴 High | Feature | **AI Model Training** | *Goal:* Train a computer vision model on Roboflow to detect Helmets, Vests, and Shoes for real-time inference. |
+| **BL-01** | 🔴 High | Feature | **AI Model Training** | *Goal:* Train a computer vision model on Roboflow to detect Helmets, Vests, Shoes, Gloves, and Goggles for real-time inference. |
 | **BL-02** | 🔴 High | Feature | **Flask API & Backend** | *Goal:* Build a Python Flask backend to stream camera frames to Roboflow and return bounding box data. |
 | **BL-03** | 🔴 High | Feature | **Live Monitoring UI** | *Goal:* Build a frontend dashboard using HTML5 Canvas to display real-time AI detection results. |
 | **BL-04** | 🟡 Med | Feature | **Role-Based Access Control** | *Goal:* Separate user sessions into Superadmin (full config access) and Admin (monitoring only). |
