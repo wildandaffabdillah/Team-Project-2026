@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - SafeSight K3</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --bg-1: #050916;
+      --bg-2: #091425;
+      --panel: rgba(10, 18, 34, 0.82);
+      --panel-soft: rgba(255, 255, 255, 0.04);
+      --line: rgba(255, 255, 255, 0.08);
+      --text: #edf3ff;
+      --muted: #97abcc;
+      --primary: #6c7dff;
+      --primary-2: #8b63ff;
+      --cyan: #39cfff;
+      --danger: #ff647f;
+      --shadow: 0 30px 80px rgba(0, 0, 0, 0.36);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Inter", sans-serif;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(108, 125, 255, 0.14), transparent 24%),
+        radial-gradient(circle at bottom right, rgba(57, 207, 255, 0.10), transparent 22%),
+        linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 55%, #09111d 100%);
+      overflow: hidden;
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 999px;
+      filter: blur(110px);
+      opacity: 0.26;
+      pointer-events: none;
+    }
+
+    .orb-1 {
+      width: 260px;
+      height: 260px;
+      background: #6274ff;
+      top: -70px;
+      left: -70px;
+    }
+
+    .orb-2 {
+      width: 240px;
+      height: 240px;
+      background: #2fd6c8;
+      right: -60px;
+      bottom: -70px;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 1080px;
+      min-height: 620px;
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: rgba(7, 13, 26, 0.82);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .left {
+      padding: 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(108, 125, 255, 0.08), transparent 24%),
+        linear-gradient(160deg, rgba(9, 16, 30, 0.96), rgba(6, 12, 24, 0.94));
+      position: relative;
+    }
+
+    .left::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: radial-gradient(circle at center, black 35%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .right {
+      padding: 56px 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.015));
+      border-left: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 34px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-mark {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: white;
+      background: linear-gradient(135deg, var(--primary), var(--cyan));
+      box-shadow: 0 16px 28px rgba(108, 125, 255, 0.28);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      line-height: 1.08;
+    }
+
+    .brand p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      max-width: 470px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      padding: 8px 12px;
+      border-radius: 999px;
+      margin-bottom: 18px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #dce7ff;
+      background: rgba(108, 125, 255, 0.12);
+      border: 1px solid rgba(108, 125, 255, 0.18);
+    }
+
+    .content h2 {
+      margin: 0 0 16px;
+      font-size: 3rem;
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      max-width: 420px;
+    }
+
+    .content p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.04rem;
+      line-height: 1.8;
+      max-width: 420px;
+    }
+
+    .form-box {
+      width: 100%;
+      max-width: 330px;
+    }
+
+    .form-box h3 {
+      margin: 0 0 10px;
+      font-size: 2rem;
+      line-height: 1.1;
+    }
+
+    .form-box p {
+      margin: 0 0 24px;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 0.98rem;
+    }
+
+    .error-box {
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      color: #ffd2dc;
+      background: rgba(255, 100, 127, 0.14);
+      border: 1px solid rgba(255, 100, 127, 0.22);
+      font-size: 0.94rem;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.93rem;
+      font-weight: 600;
+      color: #d9e3fb;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 14px 15px;
+      border-radius: 15px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      outline: none;
+      font-size: 0.96rem;
+      transition: 0.2s ease;
+    }
+
+    .field input::placeholder {
+      color: #8ca0c2;
+    }
+
+    .field input:focus {
+      border-color: rgba(108, 125, 255, 0.42);
+      box-shadow: 0 0 0 4px rgba(108, 125, 255, 0.10);
+    }
+
+    .login-btn {
+      width: 100%;
+      margin-top: 8px;
+      padding: 14px 18px;
+      border: 0;
+      border-radius: 15px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 16px 30px rgba(108, 125, 255, 0.25);
+      transition: 0.2s ease;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .hint {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .hint strong {
+      color: #dde8ff;
+    }
+
+    @media (max-width: 920px) {
+      .shell {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+
+      .left,
+      .right {
+        padding: 34px 28px;
+      }
+
+      .right {
+        border-left: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .content h2 {
+        font-size: 2.2rem;
+        max-width: none;
+      }
+
+      .content p {
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .page {
+        padding: 16px;
+      }
+
+      .left,
+      .right {
+        padding: 24px 20px;
+      }
+
+      .content h2 {
+        font-size: 1.82rem;
+      }
+
+      .form-box h3 {
+        font-size: 1.65rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="page">
+    <div class="shell">
+      <section class="left">
+        <div class="brand">
+          <div class="brand-mark">S</div>
+          <div>
+            <h1>SafeSight K3</h1>
+            <p>PPE Compliance Monitoring</p>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="eyebrow">Industrial Safety Platform</div>
+          <h2>Access your safety monitoring system securely.</h2>
+          <p>
+            Sign in to monitor PPE compliance, review worker activity,
+            and manage safety reports through a modern enterprise dashboard.
+          </p>
+        </div>
+      </section>
+
+      <section class="right">
+        <div class="form-box">
+          <h3>Login</h3>
+          <p>Sign in to continue to SafeSight K3 dashboard.</p>
+
+          {% if error %}
+          <div class="error-box">{{ error }}</div>
+          {% endif %}
+
+          <form method="POST">
+            <div class="field">
+              <label>Username</label>
+              <input type="text" name="username" placeholder="Enter your username" required />
+            </div>
+
+            <div class="field">
+              <label>Password</label>
+              <input type="password" name="password" placeholder="Enter your password" required />
+            </div>
+
+            <button type="submit" class="login-btn">Login</button>
+          </form>
+
+          <div class="hint">
+            Demo: <strong>admin</strong> / <strong>123</strong>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

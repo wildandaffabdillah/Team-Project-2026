@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ app_name }}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  </head>
+  <body>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <div class="page-shell">
+      <aside class="sidebar">
+        <div>
+          <div class="brand-row">
+            <div class="brand-mark">S</div>
+            <div>
+              <h1>SafeSight K3</h1>
+              <p>PPE Compliance Monitoring</p>
+            </div>
+          </div>
+
+          <div class="sidebar-card">
+            <span class="badge">Webcam First</span>
+            <h2>Monitoring dari kamera laptop</h2>
+            <p>
+              Versi awal ini dirancang untuk demo profesional menggunakan webcam laptop,
+              lalu nantinya bisa di-upgrade ke CCTV atau RTSP stream.
+            </p>
+          </div>
+
+          <div class="sidebar-card compact">
+            <h3>Fitur Utama</h3>
+            <ul>
+              <li>Worker detection</li>
+              <li>Helmet, vest, shoes detection</li>
+              <li>PPE compliance checker</li>
+              <li>Real-time alert</li>
+              <li>Violation logging</li>
+              <li>Report export</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="status-dot"></div>
+          <span id="systemModeText">Menunggu inisialisasi...</span>
+        </div>
+      </aside>
+
+      <main class="content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Industrial Safety Dashboard</p>
+            <h2>Smart K3 Monitoring Dashboard</h2>
+            <p class="subtext">
+              Real-time webcam monitoring untuk evaluasi kepatuhan PPE pekerja.
+            </p>
+          </div>
+
+          <div class="topbar-actions">
+  <button id="startCameraBtn" class="btn btn-primary">Start Camera</button>
+  <button id="stopCameraBtn" class="btn btn-secondary">Stop</button>
+  
+  {% if role == 'superadmin' %}
+  <button onclick="alert('🔧 Konfigurasi Kamera dikelola otomatis oleh browser (Webcam First). Untuk versi CCTV, silakan hubungi tim engineer.')" class="btn btn-ghost">⚙️ Camera Settings</button>
+  <a href="/api/report" class="btn btn-ghost">Download Report</a>
+  {% endif %}
+  
+  <a href="/logout" class="btn btn-secondary">Logout ({{ role }})</a>
+</div>
+        </header>
+
+        <section class="hero-grid">
+          <div class="card video-card">
+            <div class="card-header">
+              <div>
+                <h3>Live Monitoring</h3>
+                <p>Input dari webcam laptop</p>
+              </div>
+              <span id="complianceBadge" class="pill neutral">No Data</span>
+            </div>
+
+            <div class="video-frame">
+              <video id="webcam" autoplay muted playsinline></video>
+              <canvas id="captureCanvas" class="hidden"></canvas>
+              <div id="videoOverlay" class="video-overlay">
+                Klik <strong>Start Camera</strong> untuk memulai monitoring.
+              </div>
+            </div>
+
+            <div class="detection-grid">
+              <div class="metric-box">
+                <span>Worker</span>
+                <strong id="workerStatus">-</strong>
+              </div>
+              <div class="metric-box">
+                <span>Helmet</span>
+                <strong id="helmetStatus">-</strong>
+              </div>
+              <div class="metric-box">
+                <span>Vest</span>
+                <strong id="vestStatus">-</strong>
+              </div>
+              <div class="metric-box">
+                <span>Shoes</span>
+                <strong id="shoesStatus">-</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="side-grid">
+            <div class="card stats-card">
+              <div class="card-header">
+                <div>
+                  <h3>Monitoring Summary</h3>
+                  <p>Ringkasan deteksi terbaru</p>
+                </div>
+              </div>
+
+              <div class="stat-list">
+                <div class="stat-item">
+                  <span>Total Logs</span>
+                  <strong id="totalLogs">0</strong>
+                </div>
+                <div class="stat-item">
+                  <span>Total Violations</span>
+                  <strong id="totalViolations">0</strong>
+                </div>
+                <div class="stat-item">
+                  <span>Compliant Logs</span>
+                  <strong id="compliantLogs">0</strong>
+                </div>
+                <div class="stat-item">
+                  <span>Last Activity</span>
+                  <strong id="lastActivity">-</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="card alert-card">
+              <div class="card-header">
+                <div>
+                  <h3>Real-time Alert</h3>
+                  <p>Notifikasi pelanggaran PPE</p>
+                </div>
+              </div>
+
+              <div id="alertBox" class="alert-box info">
+                Sistem siap. Belum ada alert.
+              </div>
+
+              <div class="confidence-row">
+                <span>Confidence</span>
+                <strong id="confidenceText">0.000</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+      </main>
+    </div>
+
+    <script>
+      window.SAFESIGHT_CONFIG = {
+        captureInterval: {{ capture_interval }}
+      };
+    </script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  </body>
+</html>
