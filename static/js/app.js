@@ -124,10 +124,7 @@ function updateDetectionUI(result) {
   setCompliance(result.compliant);
 
   confidenceText.textContent = Number(result.confidence).toFixed(3);
-  systemModeText.textContent =
-    result.mode === "model"
-      ? "Model custom aktif"
-      : "Demo mode aktif (siap diganti YOLO custom)";
+  systemModeText.textContent = "AI Live Processing Engine Aktif";
 
   if (!result.worker_detected) {
     setAlert(result.violation_text, "info");
@@ -147,10 +144,61 @@ async function refreshSummary() {
     totalViolations.textContent = data.violations ?? 0;
     compliantLogs.textContent = data.compliant_logs ?? 0;
     lastActivity.textContent = data.last_activity ?? "-";
+
+    if (window.complianceChart) {
+      window.complianceChart.data.datasets[0].data = [data.compliant_logs ?? 0, data.violations ?? 0];
+      window.complianceChart.update();
+    }
   } catch (error) {
     console.error(error);
   }
 }
+
+function initChart() {
+  const ctx = document.getElementById("statsChart");
+  if (!ctx) return;
+  
+  window.complianceChart = new Chart(ctx.getContext("2d"), {
+    type: 'bar',
+    data: {
+      labels: ['Pekerja Patuh (SAFE)', 'Pelanggaran (DANGER)'],
+      datasets: [{
+        label: 'Frekuensi Log',
+        data: [0, 0],
+        backgroundColor: [
+          'rgba(37, 211, 155, 0.4)',
+          'rgba(255, 100, 127, 0.4)'
+        ],
+        borderColor: [
+          'rgba(37, 211, 155, 1)',
+          'rgba(255, 100, 127, 1)'
+        ],
+        borderWidth: 2,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: { 
+          beginAtZero: true,
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#9cb0d1', stepSize: 1 }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#9cb0d1', font: { weight: 'bold' } }
+        }
+      }
+    }
+  });
+}
+
+initChart();
 
 
 

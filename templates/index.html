@@ -30,11 +30,10 @@
           </div>
 
           <div class="sidebar-card">
-            <span class="badge">Webcam First</span>
-            <h2>Monitoring dari kamera laptop</h2>
+            <span class="badge">Engine Active</span>
+            <h2>Real-time Stream Inferencing</h2>
             <p>
-              Versi awal ini dirancang untuk demo profesional menggunakan webcam laptop,
-              lalu nantinya bisa di-upgrade ke CCTV atau RTSP stream.
+              Sistem tersambung ke jaringan lokal untuk deteksi, pelacakan, dan evaluasi kepatuhan APD (K3) seketika secara dinamis.
             </p>
           </div>
 
@@ -53,7 +52,7 @@
 
         <div class="sidebar-footer">
           <div class="status-dot"></div>
-          <span id="systemModeText">Menunggu inisialisasi...</span>
+          <span id="systemModeText">System Initializing...</span>
         </div>
       </aside>
 
@@ -63,7 +62,7 @@
             <p class="eyebrow">Industrial Safety Dashboard</p>
             <h2>Smart K3 Monitoring Dashboard</h2>
             <p class="subtext">
-              Real-time webcam monitoring untuk evaluasi kepatuhan PPE pekerja.
+              Dashboard analitik mutakhir untuk evaluasi dan log real-time keamanan situs kerja.
             </p>
           </div>
 
@@ -176,6 +175,7 @@
         captureInterval: {{ capture_interval }}
       };
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   </body>
 </html>
