@@ -30,7 +30,7 @@ def create_app() -> Flask:
                 session["role"] = USERS[username]["role"]
                 return redirect(url_for("dashboard"))
 
-            return render_template("login.html", error="Username atau password salah")
+            return render_template("login.html", error="Invalid username or password")
 
         return render_template("login.html")
 

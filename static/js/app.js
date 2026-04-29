@@ -13,6 +13,8 @@ const workerStatus = document.getElementById("workerStatus");
 const helmetStatus = document.getElementById("helmetStatus");
 const vestStatus = document.getElementById("vestStatus");
 const shoesStatus = document.getElementById("shoesStatus");
+const glovesStatus = document.getElementById("glovesStatus");
+const gogglesStatus = document.getElementById("gogglesStatus");
 
 const totalLogs = document.getElementById("totalLogs");
 const totalViolations = document.getElementById("totalViolations");
@@ -113,7 +115,7 @@ if (settingsModal) {
       }
     } catch (err) {
       console.error(err);
-      alert("Gagal menyimpan pengaturan.");
+      alert("Failed to save settings.");
     }
   });
 }
@@ -139,10 +141,10 @@ async function startCamera() {
     if (currentConfig.camera_type === "ipcam") {
       video.style.display = "none";
       ipcamView.style.display = "block";
-      if (!currentConfig.camera_url) throw new Error("URL CCTV Kosong!");
+      if (!currentConfig.camera_url) throw new Error("CCTV URL is empty!");
       
       ipcamView.src = currentConfig.camera_url;
-      overlay.textContent = "Menghubungkan ke IP Camera...";
+      overlay.textContent = "Connecting to IP Camera...";
       setTimeout(() => overlay.style.display = "none", 1500);
       
     } else {
@@ -204,7 +206,7 @@ async function captureAndAnalyze() {
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Gagal menganalisis frame.");
+    if (!response.ok) throw new Error(data.error || "Failed to analyze frame.");
 
     updateDetectionUI(data.result);
     await refreshSummary();
@@ -219,10 +221,12 @@ function updateDetectionUI(result) {
   setMetric(helmetStatus, result.helmet);
   setMetric(vestStatus, result.vest);
   setMetric(shoesStatus, result.shoes);
+  if (typeof glovesStatus !== 'undefined') setMetric(glovesStatus, result.gloves);
+  if (typeof gogglesStatus !== 'undefined') setMetric(gogglesStatus, result.goggles);
   setCompliance(result.compliant);
 
   confidenceText.textContent = Number(result.confidence).toFixed(3);
-  systemModeText.textContent = "AI Live Processing Engine Aktif";
+  systemModeText.textContent = "AI Live Processing Engine Active";
 
   if (!result.worker_detected) {
     setAlert(result.violation_text, "info");

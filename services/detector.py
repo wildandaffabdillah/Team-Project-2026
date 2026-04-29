@@ -14,6 +14,8 @@ class DetectionResult:
     helmet: bool
     vest: bool
     shoes: bool
+    gloves: bool
+    goggles: bool
     compliant: bool
     confidence: float
     violation_text: str
@@ -24,7 +26,7 @@ class PPEDetector:
     def __init__(self, api_key: str, model_id: str, required_ppe: list[str] | None = None):
         self.api_key = api_key
         self.model_id = model_id
-        self.required_ppe = required_ppe or ["helmet", "vest"]
+        self.required_ppe = required_ppe or ["helmet", "vest", "gloves", "goggles"]
 
     def decode_base64_image(self, data_url: str) -> np.ndarray:
         _, encoded = data_url.split(",", 1)
@@ -69,9 +71,9 @@ class PPEDetector:
             }
             boxes.append(box_data)
             
-            if label in ["person", "worker", "none", "no_helmet", "no_vest"]:
+            if label in ["person", "worker", "none", "no_helmet", "no_vest", "no_shoes", "no_gloves", "no_goggles"]:
                 persons.append(p)
-            elif label in ["helmet", "vest", "shoes"]:
+            elif label in ["helmet", "vest", "shoes", "gloves", "goggles"]:
                 items.append(p)
 
         persons.sort(key=lambda p: p["x"])
@@ -82,6 +84,8 @@ class PPEDetector:
         for i, person in enumerate(persons):
             has_helmet = False
             has_vest = False
+            has_gloves = False
+            has_goggles = False
             
             xmin = person["x"] - person["width"] / 2
             xmax = person["x"] + person["width"] / 2
@@ -92,6 +96,8 @@ class PPEDetector:
                 if xmin <= item["x"] <= xmax and ymin <= item["y"] <= ymax:
                     if item["class"].lower() == "helmet": has_helmet = True
                     if item["class"].lower() == "vest": has_vest = True
+                    if item["class"].lower() == "gloves": has_gloves = True
+                    if item["class"].lower() == "goggles": has_goggles = True
 
             person_compliant = has_helmet and has_vest
             
@@ -107,7 +113,7 @@ class PPEDetector:
 
             if not person_compliant:
                 is_compliant = False
-                h_text = "✅ Helm" if has_helmet else "❌ Helm"
+                h_text = "✅ Helmet" if has_helmet else "❌ Helmet"
                 v_text = "✅ Vest" if has_vest else "❌ Vest"
                 violation_strings.append(f"P{i+1}: {h_text} | {v_text}")
 
@@ -116,12 +122,12 @@ class PPEDetector:
         if not worker_detected:
             detected_labels = [p["class"] for p in predictions]
             if detected_labels:
-                violation_text = f"AI mendeteksi: {', '.join(detected_labels)} (Bukan Worker)"
+                violation_text = f"AI detected: {', '.join(detected_labels)} (Not a Worker)"
             else:
-                violation_text = "Tidak ada worker terdeteksi"
+                violation_text = "No worker detected"
             is_compliant = True
         elif is_compliant:
-            violation_text = "PPE lengkap dan sesuai"
+            violation_text = "PPE is complete and compliant"
         else:
             violation_text = " | ".join(violation_strings)
             
@@ -130,12 +136,16 @@ class PPEDetector:
         global_helmet = any(i["class"].lower() == "helmet" for i in items)
         global_vest = any(i["class"].lower() == "vest" for i in items)
         global_shoes = any(i["class"].lower() == "shoes" for i in items)
+        global_gloves = any(i["class"].lower() == "gloves" for i in items)
+        global_goggles = any(i["class"].lower() == "goggles" for i in items)
 
         return DetectionResult(
             worker_detected=worker_detected,
             helmet=global_helmet, 
             vest=global_vest,
             shoes=global_shoes,
+            gloves=global_gloves,
+            goggles=global_goggles,
             compliant=is_compliant,
             confidence=round(avg_conf, 3),
             violation_text=violation_text,

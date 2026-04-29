@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -33,12 +33,12 @@
             <span class="badge">Engine Active</span>
             <h2>Real-time Stream Inferencing</h2>
             <p>
-              Sistem tersambung ke jaringan lokal untuk deteksi, pelacakan, dan evaluasi kepatuhan APD (K3) seketika secara dinamis.
+              System connected to the local network for dynamic real-time detection, tracking, and PPE compliance evaluation.
             </p>
           </div>
 
           <div class="sidebar-card compact">
-            <h3>Fitur Utama</h3>
+            <h3>Key Features</h3>
             <ul>
               <li>Worker detection</li>
               <li>Helmet, vest, shoes detection</li>
@@ -62,7 +62,7 @@
             <p class="eyebrow">Industrial Safety Dashboard</p>
             <h2>Smart K3 Monitoring Dashboard</h2>
             <p class="subtext">
-              Dashboard analitik mutakhir untuk evaluasi dan log real-time keamanan situs kerja.
+              Advanced analytics dashboard for real-time worksite safety evaluation and logging.
             </p>
           </div>
 
@@ -84,7 +84,7 @@
             <div class="card-header">
               <div>
                 <h3>Live Monitoring</h3>
-                <p>Input dari webcam laptop</p>
+                <p>Input from camera source</p>
               </div>
               <span id="complianceBadge" class="pill neutral">No Data</span>
             </div>
@@ -94,7 +94,7 @@
               <video id="webcam" autoplay muted playsinline></video>
               <canvas id="captureCanvas" class="hidden"></canvas>
               <div id="videoOverlay" class="video-overlay">
-                Klik <strong>Start Camera</strong> untuk memulai monitoring.
+                Click <strong>Start Camera</strong> to begin monitoring.
               </div>
             </div>
 
@@ -115,6 +115,14 @@
                 <span>Shoes</span>
                 <strong id="shoesStatus">-</strong>
               </div>
+              <div class="metric-box">
+                <span>Gloves</span>
+                <strong id="glovesStatus">-</strong>
+              </div>
+              <div class="metric-box">
+                <span>Goggles</span>
+                <strong id="gogglesStatus">-</strong>
+              </div>
             </div>
           </div>
 
@@ -123,7 +131,7 @@
               <div class="card-header">
                 <div>
                   <h3>Monitoring Summary</h3>
-                  <p>Ringkasan deteksi terbaru</p>
+                  <p>Latest detection summary</p>
                 </div>
               </div>
 
@@ -151,12 +159,12 @@
               <div class="card-header">
                 <div>
                   <h3>Real-time Alert</h3>
-                  <p>Notifikasi pelanggaran PPE</p>
+                  <p>PPE violation notification</p>
                 </div>
               </div>
 
               <div id="alertBox" class="alert-box info">
-                Sistem siap. Belum ada alert.
+                System ready. No alerts yet.
               </div>
 
               <div class="confidence-row">
@@ -181,27 +189,27 @@
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label>Tipe Kamera</label>
+            <label>Camera Type</label>
             <div class="radio-group">
               <label><input type="radio" name="camType" value="webcam" checked> Local Webcam (USB)</label>
-              <label><input type="radio" name="camType" value="ipcam"> IP CCTV URL (HP/MJPEG)</label>
+              <label><input type="radio" name="camType" value="ipcam"> IP CCTV URL (Phone/MJPEG)</label>
             </div>
           </div>
           
           <div id="webcamGroup" class="form-group">
-            <label>Pilih Hardware Kamera</label>
+            <label>Select Hardware Camera</label>
             <select id="webcamSelect" class="form-control">
-              <option value="">Memuat perangkat...</option>
+              <option value="">Loading devices...</option>
             </select>
           </div>
           
           <div id="ipcamGroup" class="form-group hidden">
-            <label>Alamat Stream (URL)</label>
+            <label>Stream Address (URL)</label>
             <input type="text" id="ipcamUrl" class="form-control" placeholder="http://192.168.1.10:8080/video">
           </div>
         </div>
         <div class="modal-footer">
-          <button id="saveSettingsBtn" class="btn btn-primary">Simpan Konfigurasi</button>
+          <button id="saveSettingsBtn" class="btn btn-primary">Save Configuration</button>
         </div>
       </div>
     </div>

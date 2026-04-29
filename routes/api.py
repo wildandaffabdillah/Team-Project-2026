@@ -36,7 +36,7 @@ def get_settings():
 @api_bp.route("/settings", methods=["POST"])
 def post_settings():
     if session.get("role") != "superadmin":
-        return jsonify({"error": "Akses Ditolak. Hanya Superadmin yang dapat mengubah pengaturan kamera."}), 403
+        return jsonify({"error": "Access Denied. Only Superadmin can modify camera settings."}), 403
     
     payload = request.get_json(silent=True) or {}
     current = load_settings()
@@ -63,7 +63,7 @@ def analyze_frame():
     frame = payload.get("frame")
 
     if not frame:
-        return jsonify({"error": "Frame webcam tidak ditemukan."}), 400
+        return jsonify({"error": "Webcam frame not found."}), 400
 
     detector = get_detector()
     result = detector.analyze(frame)
@@ -93,6 +93,8 @@ def analyze_frame():
                 "helmet": result.helmet,
                 "vest": result.vest,
                 "shoes": result.shoes,
+                "gloves": result.gloves,
+                "goggles": result.goggles,
                 "compliant": result.compliant,
                 "confidence": result.confidence,
                 "violation_text": result.violation_text,
