@@ -227,7 +227,6 @@ function updateDetectionUI(result) {
   setCompliance(result.compliant);
 
   confidenceText.textContent = Number(result.confidence).toFixed(3);
-  systemModeText.textContent = "AI Live Processing Engine Active";
 
   if (!result.worker_detected) {
     setAlert(result.violation_text, "info");
