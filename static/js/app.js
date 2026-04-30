@@ -143,7 +143,8 @@ async function startCamera() {
       ipcamView.style.display = "block";
       if (!currentConfig.camera_url) throw new Error("CCTV URL is empty!");
       
-      ipcamView.src = currentConfig.camera_url;
+      // Use backend proxy to bypass Canvas CORS tainting from external IP Cameras
+      ipcamView.src = "/api/proxy/video?url=" + encodeURIComponent(currentConfig.camera_url);
       overlay.textContent = "Connecting to IP Camera...";
       setTimeout(() => overlay.style.display = "none", 1500);
       

@@ -1,5 +1,6 @@
-from flask import Blueprint, Response, current_app, jsonify, request, session
+from flask import Blueprint, Response, current_app, jsonify, request, session, stream_with_context
 import json
+import requests
 from pathlib import Path
 
 from services.database import (
@@ -126,3 +127,16 @@ def report():
             "Content-Disposition": "attachment; filename=safesight-k3-report.csv"
         },
     )
+
+@api_bp.route("/proxy/video")
+def proxy_video():
+    url = request.args.get("url")
+    if not url:
+        return "Missing url parameter", 400
+    try:
+        # Stream the video from the IP Camera through our Flask backend to bypass CORS
+        req = requests.get(url, stream=True, timeout=5)
+        return Response(stream_with_context(req.iter_content(chunk_size=1024)), 
+                        content_type=req.headers.get('content-type', 'multipart/x-mixed-replace'))
+    except Exception as e:
+        return str(e), 500
