@@ -259,43 +259,132 @@ async function refreshSummary() {
 function initChart() {
   const ctx = document.getElementById("statsChart");
   if (!ctx) return;
-  
+
   window.complianceChart = new Chart(ctx.getContext("2d"), {
     type: 'bar',
     data: {
       labels: ['Pekerja Patuh (SAFE)', 'Pelanggaran (DANGER)'],
       datasets: [{
-        label: 'Frekuensi Log',
+        label: 'Jumlah Log',
         data: [0, 0],
         backgroundColor: [
-          'rgba(37, 211, 155, 0.4)',
-          'rgba(255, 100, 127, 0.4)'
+          'rgba(16, 185, 129, 0.85)',
+          'rgba(244, 63, 94, 0.85)'
         ],
         borderColor: [
-          'rgba(37, 211, 155, 1)',
-          'rgba(255, 100, 127, 1)'
+          '#10b981',
+          '#f43f5e'
         ],
         borderWidth: 2,
-        borderRadius: 6
+        borderRadius: 10,
+        borderSkipped: false
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(11, 17, 32, 0.95)',
+          titleColor: '#f8fafc',
+          bodyColor: '#94a3b8',
+          borderColor: 'rgba(255,255,255,0.08)',
+          borderWidth: 1,
+          padding: 14,
+          cornerRadius: 10,
+          displayColors: false
+        }
+      },
       scales: {
-        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9cb0d1', stepSize: 1 } },
-        x: { grid: { display: false }, ticks: { color: '#9cb0d1', font: { weight: 'bold' } } }
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: {
+            color: '#94a3b8',
+            font: { family: 'Inter', size: 12 }
+          }
+        },
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: '#94a3b8',
+            font: { family: 'Inter', size: 13, weight: '600' }
+          }
+        }
       }
     }
   });
+}
+
+/* ── Violation Log ── */
+async function fetchViolationLogs() {
+  try {
+    const resp = await fetch("/api/logs?limit=20");
+    const logs = await resp.json();
+    renderViolationLogs(logs);
+  } catch (e) {
+    console.error("Failed to fetch logs:", e);
+  }
+}
+
+function renderViolationLogs(logs) {
+  const container = document.getElementById("violationList");
+  if (!container) return;
+
+  // Only show non-compliant logs (violations)
+  const violations = logs.filter(l => l.compliant === 0 && l.worker_detected === 1);
+
+  if (violations.length === 0) {
+    container.innerHTML = '<div class="violation-empty">&#10003; No violations found in recent logs. Workers are compliant!</div>';
+    return;
+  }
+
+  const ppeItems = [
+    { key: "worker_detected", label: "Worker" },
+    { key: "helmet",         label: "Helmet" },
+    { key: "vest",           label: "Vest" },
+    { key: "shoes",          label: "Shoes" },
+    { key: "gloves",         label: "Gloves" },
+    { key: "goggles",        label: "Goggles" },
+  ];
+
+  container.innerHTML = violations.map(log => {
+    const badges = ppeItems.map(item => {
+      const worn = log[item.key] === 1;
+      return `<span class="ppe-badge ${worn ? 'ok' : 'fail'}">
+        ${worn ? '&#10003;' : '&#10005;'} ${item.label}
+      </span>`;
+    }).join('');
+
+    return `
+      <div class="vlog-row">
+        <div class="vlog-icon">&#128683;</div>
+        <div class="vlog-info">
+          <div class="vlog-time">&#128337; ${log.created_at} &nbsp;|&nbsp; Confidence: ${(log.confidence * 100).toFixed(1)}%</div>
+          <div class="vlog-badges">${badges}</div>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 startBtn.addEventListener("click", startCamera);
 stopBtn.addEventListener("click", stopCamera);
 window.addEventListener("beforeunload", stopCamera);
 
+const refreshLogsBtn = document.getElementById("refreshLogsBtn");
+if (refreshLogsBtn) {
+  refreshLogsBtn.addEventListener("click", fetchViolationLogs);
+}
+
 loadSettings().then(() => {
   initChart();
   refreshSummary();
+  fetchViolationLogs();
 });
+
+// Auto-refresh violation log every 15 seconds
+setInterval(() => {
+  refreshSummary();
+  fetchViolationLogs();
+}, 15000);

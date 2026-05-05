@@ -11,19 +11,23 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.0" />
   </head>
   <body>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
     <div class="page-shell">
       <aside class="sidebar">
-        <div>
-          <div class="brand-row">
-            <div class="brand-mark">S</div>
-            <div>
-              <h1>SafeSight K3</h1>
-              <p>PPE Compliance Monitoring</p>
-            </div>
-          </div>
+        <div class="sidebar-actions">
+          <button id="startCameraBtn" class="btn btn-primary">Start Camera</button>
+          <button id="stopCameraBtn" class="btn btn-secondary">Stop</button>
+          <div class="sidebar-divider"></div>
+          {% if role == 'superadmin' %}
+          <button id="openSettingsBtn" class="btn btn-ghost">&#9881;&#65039; Camera Settings</button>
+          <a href="/api/report" class="btn btn-ghost">&#128202; Download Report</a>
+          {% endif %}
+          <div class="sidebar-spacer"></div>
+          <a href="/logout" class="btn btn-danger-outline">Logout ({{ role }})</a>
         </div>
       </aside>
 
@@ -32,21 +36,10 @@
           <div>
             <h2>K3 Monitoring Dashboard</h2>
           </div>
-
-          <div class="topbar-actions">
-  <button id="startCameraBtn" class="btn btn-primary">Start Camera</button>
-  <button id="stopCameraBtn" class="btn btn-secondary">Stop</button>
-  
-  {% if role == 'superadmin' %}
-  <button id="openSettingsBtn" class="btn btn-ghost">⚙️ Camera Settings</button>
-  <a href="/api/report" class="btn btn-ghost">Download Report</a>
-  {% endif %}
-  
-  <a href="/logout" class="btn btn-secondary">Logout ({{ role }})</a>
-</div>
         </header>
 
         <section class="hero-grid">
+          <!-- LEFT: Video Feed -->
           <div class="card video-card">
             <div class="card-header">
               <div>
@@ -93,57 +86,67 @@
             </div>
           </div>
 
+          <!-- RIGHT: Stats + Chart stacked -->
           <div class="side-grid">
-            <div class="card stats-card">
+            <!-- Summary Stats Row -->
+            <div class="card">
               <div class="card-header">
                 <div>
                   <h3>Monitoring Summary</h3>
-                  <p>Latest detection summary</p>
+                  <p>Real-time analytics and detection logs</p>
                 </div>
               </div>
-
-              <div class="stat-list">
-                <div class="stat-item">
-                  <span>Total Logs</span>
+              <div class="stat-row">
+                <div class="stat-item-box">
+                  <span class="stat-label">Total Logs</span>
                   <strong id="totalLogs">0</strong>
                 </div>
-                <div class="stat-item">
-                  <span>Total Violations</span>
+                <div class="stat-item-box danger">
+                  <span class="stat-label">Violations</span>
                   <strong id="totalViolations">0</strong>
                 </div>
-                <div class="stat-item">
-                  <span>Compliant Logs</span>
+                <div class="stat-item-box success">
+                  <span class="stat-label">Compliant</span>
                   <strong id="compliantLogs">0</strong>
                 </div>
-                <div class="stat-item">
-                  <span>Last Activity</span>
-                  <strong id="lastActivity">-</strong>
+                <div class="stat-item-box">
+                  <span class="stat-label">Last Activity</span>
+                  <strong id="lastActivity" class="small-text">-</strong>
                 </div>
               </div>
             </div>
 
-            <div class="card alert-card">
+            <!-- Bar Chart Card -->
+            <div class="card">
               <div class="card-header">
                 <div>
-                  <h3>Real-time Alert</h3>
-                  <p>PPE violation notification</p>
+                  <h3>Worker Statistics</h3>
+                  <p>Safety compliance bar chart</p>
                 </div>
               </div>
-
-              <div id="alertBox" class="alert-box info">
-                System ready. No alerts yet.
-              </div>
-
-              <div class="confidence-row">
-                <span>Confidence</span>
-                <strong id="confidenceText">0.000</strong>
+              <div class="chart-wrap">
+                <canvas id="statsChart"></canvas>
               </div>
             </div>
           </div>
         </section>
 
+        <!-- Violation Log - Full Width -->
+        <div class="card violation-full-card">
+          <div class="card-header">
+            <div>
+              <h3>&#9888;&#65039; Violation Log</h3>
+              <p>Workers detected without required safety equipment</p>
+            </div>
+            <button id="refreshLogsBtn" class="btn btn-ghost btn-sm">&#8635; Refresh</button>
+          </div>
+          <div id="violationList" class="violation-list">
+            <div class="violation-empty">No violation data yet. Start the camera to begin monitoring.</div>
+          </div>
+        </div>
 
       </main>
+
     </div>
 
     {% if role == 'superadmin' %}
@@ -151,7 +154,7 @@
     <div id="settingsModal" class="modal-backdrop hidden">
       <div class="modal-card">
         <div class="modal-header">
-          <h3>⚙️ Camera Config (Superadmin)</h3>
+          <h3>&#9881;&#65039; Camera Config (Superadmin)</h3>
           <button id="closeModalBtn" class="close-btn">&times;</button>
         </div>
         <div class="modal-body">
@@ -162,14 +165,14 @@
               <label><input type="radio" name="camType" value="ipcam"> IP CCTV URL (Phone/MJPEG)</label>
             </div>
           </div>
-          
+
           <div id="webcamGroup" class="form-group">
             <label>Select Hardware Camera</label>
             <select id="webcamSelect" class="form-control">
               <option value="">Loading devices...</option>
             </select>
           </div>
-          
+
           <div id="ipcamGroup" class="form-group hidden">
             <label>Stream Address (URL)</label>
             <input type="text" id="ipcamUrl" class="form-control" placeholder="http://192.168.1.10:8080/video">

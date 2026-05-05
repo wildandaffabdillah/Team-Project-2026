@@ -75,6 +75,8 @@ def analyze_frame():
         "helmet": result.helmet,
         "vest": result.vest,
         "shoes": result.shoes,
+        "gloves": result.gloves,
+        "goggles": result.goggles,
         "compliant": result.compliant,
         "violation_text": result.violation_text,
         "confidence": result.confidence,

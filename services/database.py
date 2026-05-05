@@ -12,11 +12,21 @@ CREATE TABLE IF NOT EXISTS violations (
     helmet INTEGER NOT NULL,
     vest INTEGER NOT NULL,
     shoes INTEGER NOT NULL,
+    gloves INTEGER NOT NULL DEFAULT 0,
+    goggles INTEGER NOT NULL DEFAULT 0,
     compliant INTEGER NOT NULL,
     violation_text TEXT NOT NULL,
     confidence REAL NOT NULL,
     mode TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL
+);
+
 """
 
 
@@ -30,6 +40,12 @@ def init_db(db_path: str) -> None:
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
     with closing(get_connection(db_path)) as conn:
         conn.executescript(SCHEMA_SQL)
+        # Migration: add gloves/goggles columns if they don't exist yet
+        for col in ["gloves", "goggles"]:
+            try:
+                conn.execute(f"ALTER TABLE violations ADD COLUMN {col} INTEGER NOT NULL DEFAULT 0")
+            except Exception:
+                pass  # column already exists
         conn.commit()
 
 
@@ -43,11 +59,13 @@ def insert_violation(db_path: str, payload: dict) -> int:
                 helmet,
                 vest,
                 shoes,
+                gloves,
+                goggles,
                 compliant,
                 violation_text,
                 confidence,
                 mode
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 payload["created_at"],
@@ -55,6 +73,8 @@ def insert_violation(db_path: str, payload: dict) -> int:
                 int(payload["helmet"]),
                 int(payload["vest"]),
                 int(payload["shoes"]),
+                int(payload.get("gloves", 0)),
+                int(payload.get("goggles", 0)),
                 int(payload["compliant"]),
                 payload["violation_text"],
                 float(payload["confidence"]),
@@ -136,3 +156,24 @@ def export_report_csv(db_path: str) -> str:
 
 def now_iso() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def create_user(db_path: str, username, password_hash, role="admin"):
+    with closing(get_connection(db_path)) as conn:
+        try:
+            conn.execute(
+                "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
+                (username, password_hash, role),
+            )
+            conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            return False
+
+
+def get_user(db_path: str, username):
+    with closing(get_connection(db_path)) as conn:
+        row = conn.execute(
+            "SELECT * FROM users WHERE username = ?", (username,)
+        ).fetchone()
+        return dict(row) if row else None
